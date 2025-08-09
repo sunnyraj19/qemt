@@ -18,16 +18,30 @@ def fold_circuit(circ: QuantumCircuit, scale: int) -> QuantumCircuit:
     folded.compose(u, inplace=True)
     return folded
 
-def zne(circ: QuantumCircuit, backend, executor: Callable[[QuantumCircuit], float],
-        scale_factors: List[int] = [1,3,5], fit: str = "richardson",
-        transpile_opts: Optional[Dict] = None) -> Dict:
+def _safe_transpile(circ: QuantumCircuit, backend, opts: Optional[Dict]) -> QuantumCircuit:
+    """Try transpiling with backend; if backend is dummy/missing attrs, fall back to no-backend."""
+    try:
+        if backend is not None:
+            return transpile(circ, backend=backend, optimization_level=1, **(opts or {}))
+    except Exception:
+        pass
+    # Fallback: transpile without backend
+    return transpile(circ, optimization_level=1, **(opts or {}))
+
+def zne(
+    circ: QuantumCircuit,
+    backend,
+    executor: Callable[[QuantumCircuit], float],
+    scale_factors: List[int] = [1,3,5],
+    fit: str = "richardson",
+    transpile_opts: Optional[Dict] = None,
+) -> Dict:
     vals, xs = [], []
     for s in scale_factors:
         fc = fold_circuit(circ, s)
-        tc = transpile(fc, backend=backend, optimization_level=1, **(transpile_opts or {}))
+        tc = _safe_transpile(fc, backend, transpile_opts)
         vals.append(float(executor(tc)))
         xs.append(s)
-    import numpy as np
     xs = np.array(xs, dtype=float); ys = np.array(vals, dtype=float)
     if fit == "richardson":
         A = np.vstack([xs, np.ones_like(xs)]).T
@@ -40,3 +54,4 @@ def zne(circ: QuantumCircuit, backend, executor: Callable[[QuantumCircuit], floa
     else:
         raise ValueError("fit must be 'richardson' or 'poly2'")
     return {"scale_factors": xs.tolist(), "raw": ys.tolist(), "mitigated": mitigated, "fit": fit_params}
+
