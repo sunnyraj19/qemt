@@ -12,14 +12,12 @@ from qemt.utils.plotting import plot_bar
 # Try to import ALAPSchedule across Qiskit versions
 ALAPSchedule = None
 try:
-    # Newer path (preferred)
-    from qiskit.transpiler.passes.scheduling import ALAPSchedule  # type: ignore
+    from qiskit.transpiler.passes.scheduling import ALAPSchedule  # newer
 except Exception:
     try:
-        # Older public path
-        from qiskit.transpiler.passes import ALAPSchedule  # type: ignore
+        from qiskit.transpiler.passes import ALAPSchedule  # older
     except Exception:
-        ALAPSchedule = None  # fall back later
+        ALAPSchedule = None
 
 os.makedirs('experiments/results', exist_ok=True)
 
@@ -58,19 +56,19 @@ best = None
 for gamma in np.linspace(0, pi, 6):
     for beta in np.linspace(0, pi / 2, 6):
         qc = qaoa_circuit(gamma, beta)
-        tc = transpile(qc, backend, optimization_level=1)
+        tc = transpile(qc, backend, optimization_level=1)  # no scheduling here
         res = backend.run(tc, shots=4096).result()
         val = expected_cut(res.get_counts())
         if best is None or val > best["value"]:
             best = {"gamma": float(gamma), "beta": float(beta), "value": float(val)}
 
-# ---- 2) Try to schedule then apply DD ----
-val_dd = best["value"]  # default fallback: no improvement if DD unavailable
-dd_note = "baseline only (DD skipped)"
+# ---- 2) Schedule (manually) then apply DD ----
+val_dd = best["value"]          # fallback if DD not available
+note = "baseline only (DD skipped)"
 
 if ALAPSchedule is not None:
     try:
-        # Provide explicit durations so scheduling won't complain on Aer
+        # Explicit durations so scheduling works even on Aer
         durations = InstructionDurations([
             ("h",        None, 50),
             ("rx",       None, 50),
@@ -80,36 +78,36 @@ if ALAPSchedule is not None:
         ])
 
         qc_best = qaoa_circuit(best["gamma"], best["beta"])
-        # First, normal transpile (map/opt)
+
+        # 2a) Transpile WITHOUT scheduling (mapping/opt only)
         tc = transpile(qc_best, backend, optimization_level=1)
-        # Then schedule with ALAP using our durations
+
+        # 2b) Manually schedule with ALAP using our durations
         pm_sched = PassManager([ALAPSchedule(durations)])
         tc_sched = pm_sched.run(tc)
 
-        # Now apply DD on the scheduled circuit
+        # 2c) Apply DD on the scheduled circuit
         dd_pass = add_dd_pass(backend, sequence="XY4")
         pm_dd = PassManager([dd_pass])
         tc_dd = pm_dd.run(tc_sched)
 
         res_dd = backend.run(tc_dd, shots=4096).result()
         val_dd = expected_cut(res_dd.get_counts())
-        dd_note = "DD applied (XY4)"
+        note = "DD applied (XY4)"
     except Exception as e:
-        # Keep baseline if anything goes wrong; annotate note
-        dd_note = f"DD skipped due to: {type(e).__name__}: {e}".splitlines()[0]
+        # Graceful fallback if anything goes wrong
+        note = f"DD skipped due to: {type(e).__name__}: {e}".splitlines()[0]
 
 # ---- 3) Save + plot ----
-artifact = {"grid_best": best, "with_dd": float(val_dd), "note": dd_note}
+artifact = {"grid_best": best, "with_dd": float(val_dd), "note": note}
 with open("experiments/results/qaoa_maxcut_dd.json", "w") as f:
     json.dump(artifact, f, indent=2)
 
 plot_bar(
     ["Baseline", "With DD"],
     [best["value"], val_dd],
-    "Setting", "Expected cut", f"QAOA MaxCut: {dd_note}",
+    "Setting", "Expected cut", f"QAOA MaxCut: {note}",
     "experiments/results/qaoa_maxcut_dd.png"
 )
 
 print("Saved experiments/results/qaoa_maxcut_dd.json and qaoa_maxcut_dd.png")
-
-
