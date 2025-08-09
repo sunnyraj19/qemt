@@ -1,0 +1,113 @@
+name: Run & Publish Experiments
+
+on:
+  workflow_dispatch: {}   # run manually from the Actions tab
+  push:
+    branches: [ main ]    # also run on every push to main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install scipy networkx
+
+      # ---- run your three experiments ----
+      - name: Run Grover + ZNE
+        run: python -m qemt.cli run --exp grover_zne
+
+      - name: Run VQE(H2) optimizer
+        run: python -m qemt.cli run --exp vqe_opt
+
+      - name: Run QAOA + DD
+        run: python -m qemt.cli run --exp qaoa_dd
+
+      # ---- build a simple site from results ----
+      - name: Build site directory
+        run: |
+          mkdir -p site
+          cp experiments/results/* site/ || true
+          # Simple index.html with thumbnails + links
+          cat > site/index.html << 'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <title>QEMT – Experiment Results</title>
+            <style>
+              body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;margin:24px;line-height:1.45}
+              h1{margin-top:0}
+              .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px}
+              .card{border:1px solid #e5e7eb;border-radius:12px;padding:16px}
+              img{max-width:100%;height:auto;border-radius:8px;border:1px solid #e5e7eb}
+              code{background:#f6f8fa;padding:2px 6px;border-radius:6px}
+              a{color:#0b63c4;text-decoration:none}
+              a:hover{text-decoration:underline}
+            </style>
+          </head>
+          <body>
+            <h1>QEMT – Experiment Results</h1>
+            <p>This page is auto-published by GitHub Actions on each push to <code>main</code> or when triggered manually.</p>
+
+            <div class="grid">
+              <div class="card">
+                <h3>Grover + ZNE</h3>
+                <p><a href="./grover_zne.json">grover_zne.json</a></p>
+                <img src="./grover_zne.png" alt="Grover ZNE plot" onerror="this.style.display='none'">
+              </div>
+
+              <div class="card">
+                <h3>VQE(H₂) – Optimizer</h3>
+                <p><a href="./vqe_h2_opt.json">vqe_h2_opt.json</a></p>
+                <img src="./vqe_h2_opt.png" alt="VQE convergence plot" onerror="this.style.display='none'">
+              </div>
+
+              <div class="card">
+                <h3>QAOA(MaxCut) + DD</h3>
+                <p><a href="./qaoa_maxcut_dd.json">qaoa_maxcut_dd.json</a></p>
+                <img src="./qaoa_maxcut_dd.png" alt="QAOA DD bar chart" onerror="this.style.display='none'">
+              </div>
+            </div>
+
+            <p style="margin-top:28px;">
+              Repo: <a href="https://github.com/sunnyraj19/qemt">sunnyraj19/qemt</a>
+            </p>
+          </body>
+          </html>
+          HTML
+
+          # no Jekyll processing; serve raw files as-is
+          touch site/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
