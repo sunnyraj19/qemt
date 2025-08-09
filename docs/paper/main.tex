@@ -1,0 +1,41 @@
+\
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,graphicx,hyperref}
+\title{Error Mitigation on NISQ Devices: A Practical Toolkit and Benchmarks}
+\author{Your Name}
+\date{\today}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We implement and benchmark a compact toolkit of error-mitigation methods---Zero-Noise Extrapolation (ZNE), measurement mitigation, and dynamical decoupling---on Grover, VQE(H$_2$), and QAOA(MaxCut). We show consistent reductions in observable error on simulated noisy backends and provide optional hooks for IBM devices.
+\end{abstract}
+
+\section{Introduction}
+NISQ devices are limited by noise; error mitigation offers a near-term path to improved expectation values without full fault tolerance.
+
+\section{Methods}
+\subsection{Zero-Noise Extrapolation}
+Circuit folding with odd scale factors and Richardson extrapolation to estimate the zero-noise observable.
+
+\subsection{Measurement Mitigation}
+Calibration-based readout error mitigation.
+
+\subsection{Dynamical Decoupling}
+Padding idle periods with XY4/CPMG sequences to reduce decoherence.
+
+\section{Experiments}
+\paragraph{Grover + ZNE} Report baseline vs. ZNE-extrapolated observables.
+\paragraph{VQE(H$_2$)} Compare noisy energy, ideal energy, and ZNE-mitigated energy.
+\paragraph{QAOA(MaxCut)} Show best cut value before/after DD.
+
+\section{Results}
+Insert figures exported from \texttt{experiments/results}.
+
+\section{Discussion and Future Work}
+Combine ZNE with DD; extend to larger qubit counts and additional ans\"atze.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+\end{document}

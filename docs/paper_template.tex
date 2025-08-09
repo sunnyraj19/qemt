@@ -1,0 +1,47 @@
+\
+\documentclass[12pt]{article}
+\usepackage{amsmath, amssymb, graphicx, hyperref}
+\title{Quantum Error Mitigation Toolkit: Methods and Benchmarks}
+\author{Your Name}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present QEMT, an open-source Python toolkit implementing and benchmarking error-mitigation techniques for noisy quantum devices, focusing on Zero-Noise Extrapolation (ZNE), Dynamical Decoupling (DD), Measurement Error Mitigation (EMM), and Clifford Data Regression (CDR).
+\end{abstract}
+
+\section{Introduction}
+Brief overview of NISQ era, motivation for error mitigation, and contributions.
+
+\section{Methods}
+\subsection{Zero-Noise Extrapolation}
+Explain circuit folding, scaling factors, and fitting.
+
+\subsection{Dynamical Decoupling}
+Describe XY4, CPMG sequences and insertion via transpiler passes.
+
+\subsection{Measurement Error Mitigation}
+Outline calibration circuits and correction matrix.
+
+\subsection{Clifford Data Regression}
+Summarize regression approach.
+
+\section{Benchmarks}
+\subsection{Grover Search}
+Present results with/without ZNE.
+
+\subsection{VQE(H$_2$)}
+Energy error reduction with ZNE.
+
+\subsection{QAOA(MaxCut)}
+Improvement with DD.
+
+\section{Conclusion}
+Summarize findings and future work.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

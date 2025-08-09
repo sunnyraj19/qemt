@@ -1,0 +1,10 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+# Results
+experiments/results/
+# OS
+.DS_Store
+Thumbs.db

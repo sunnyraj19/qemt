@@ -1,0 +1,19 @@
+[project]
+name = "qemt"
+version = "0.1.0"
+description = "Quantum Error Mitigation Toolkit for NISQ devices (Qiskit)"
+authors = [{name="Your Name"}]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "qiskit>=1.0.0",
+    "qiskit-aer>=0.13.3",
+    "qiskit-ibm-runtime>=0.23.0",
+    "numpy>=1.23",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+    "pandas>=2.0"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
