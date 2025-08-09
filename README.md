@@ -1,4 +1,5 @@
 # QEMT — Quantum Error Mitigation Toolkit (Qiskit)
+![CI](https://github.com/sunnyraj19/qemt/actions/workflows/ci.yml/badge.svg)
 
 A compact, research-oriented toolkit to implement and benchmark error-mitigation methods on noisy quantum circuits using Qiskit.
 
