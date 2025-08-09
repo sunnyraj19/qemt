@@ -3,15 +3,18 @@ from qiskit import QuantumCircuit
 from qemt.mitigation.zne import zne
 
 def test_zne_linear_recovery():
+    # Synthetic linear model: y = a + b*s; intercept at s=0 is 'a'
     a, b = 0.7, -0.1
-    qc = QuantumCircuit(1)
-    class DummyBackend: pass
-    dummy = DummyBackend()
-    scales = [1,3,5]
+    scales = [1, 3, 5]
     vals = [a + b*s for s in scales]
+
+    # Executor returns the next synthetic value each call
     current = {'i': 0}
-    def ex(_circ):
+    def executor(_circ):
         i = current['i']; current['i'] += 1
         return vals[i]
-    out = zne(qc, dummy, ex, scale_factors=scales, fit='richardson')
+
+    qc = QuantumCircuit(1)
+    out = zne(qc, backend=None, executor=executor, scale_factors=scales, fit='richardson')
     assert np.isclose(out['mitigated'], a, atol=1e-6)
+
