@@ -111,3 +111,4 @@ plot_bar(
 )
 
 print("Saved experiments/results/qaoa_maxcut_dd.json and qaoa_maxcut_dd.png")
+
