@@ -1,3 +1,4 @@
+![CI](https://github.com/sunnyraj19/qemt/actions/workflows/ci.yml/badge.svg)
 # QEMT — Quantum Error Mitigation Toolkit (Qiskit)
 ![CI](https://github.com/sunnyraj19/qemt/actions/workflows/ci.yml/badge.svg)
 
@@ -16,4 +17,5 @@ pip install -e .
 python experiments/01_grover_zne.py
 ```
 Outputs artifacts under `experiments/results/`.
+
 
